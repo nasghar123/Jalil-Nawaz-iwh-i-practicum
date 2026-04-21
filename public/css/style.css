@@ -56,3 +56,25 @@ input[type="submit"] {
     padding: .375rem 1rem;
     margin-top: 10px;
 }
+
+.data-table {
+    width: 100%;
+    max-width: 960px;
+    margin: 1rem;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    border: solid 1px lightgrey;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+}
+
+.data-table thead {
+    background-color: #f5f5f5;
+}
+
+body > a {
+    margin-left: 1rem;
+}

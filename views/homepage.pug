@@ -1,0 +1,25 @@
+doctype html
+html
+  head
+    title= title
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    link(rel="stylesheet", href="/css/style.css")
+  body
+    h1 CRM records
+    a(href="/update-cobj") Add to this table
+
+    if records.length
+      table.data-table
+        thead
+          tr
+            th Email
+            each p in propConfig
+              th= p.label
+        tbody
+          each record in records
+            tr
+              td= record.properties.email || ""
+              each p in propConfig
+                td= record.properties[p.key] || ""
+    else
+      p No records found yet.

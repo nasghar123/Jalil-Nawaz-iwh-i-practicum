@@ -1,71 +1,110 @@
 const express = require('express');
 const axios = require('axios');
+const path = require('path');
+require('dotenv').config();
+
 const app = express();
+const PORT = process.env.PORT || 3000;
+
+const HUBSPOT_BASE_URL = 'https://api.hubapi.com';
+const TOKEN = process.env.PRIVATE_APP_ACCESS_TOKEN;
+const OBJECT_TYPE = process.env.HUBSPOT_OBJECT_TYPE || 'contacts';
+
+const PROP_CONFIG = [
+  {
+    key: process.env.CRM_PROPERTY_NAME || 'practicum_name',
+    label: 'Practicum Name',
+  },
+  {
+    key: process.env.CRM_PROPERTY_SPECIES || 'species',
+    label: 'Species',
+  },
+  {
+    key: process.env.CRM_PROPERTY_BIO || 'bio',
+    label: 'Bio',
+  },
+];
+
+const PROPERTY_KEYS = PROP_CONFIG.map((p) => p.key);
+const LIST_PROPERTIES = ['email', ...PROPERTY_KEYS];
 
 app.set('view engine', 'pug');
-app.use(express.static(__dirname + '/public'));
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
 
-// * Please DO NOT INCLUDE the private app access token in your repo. Don't do this practicum in your normal account.
-const PRIVATE_APP_ACCESS = '';
-
-// TODO: ROUTE 1 - Create a new app.get route for the homepage to call your custom object data. Pass this data along to the front-end and create a new pug template in the views folder.
-
-// * Code for Route 1 goes here
-
-// TODO: ROUTE 2 - Create a new app.get route for the form to create or update new custom object data. Send this data along in the next route.
-
-// * Code for Route 2 goes here
-
-// TODO: ROUTE 3 - Create a new app.post route for the custom objects form to create or update your custom object data. Once executed, redirect the user to the homepage.
-
-// * Code for Route 3 goes here
-
-/** 
-* * This is sample code to give you a reference for how you should structure your calls. 
-
-* * App.get sample
-app.get('/contacts', async (req, res) => {
-    const contacts = 'https://api.hubspot.com/crm/v3/objects/contacts';
-    const headers = {
-        Authorization: `Bearer ${PRIVATE_APP_ACCESS}`,
-        'Content-Type': 'application/json'
-    }
-    try {
-        const resp = await axios.get(contacts, { headers });
-        const data = resp.data.results;
-        res.render('contacts', { title: 'Contacts | HubSpot APIs', data });      
-    } catch (error) {
-        console.error(error);
-    }
+const hsClient = axios.create({
+  baseURL: HUBSPOT_BASE_URL,
+  headers: {
+    Authorization: `Bearer ${TOKEN}`,
+    'Content-Type': 'application/json',
+  },
 });
 
-* * App.post sample
-app.post('/update', async (req, res) => {
-    const update = {
-        properties: {
-            "favorite_book": req.body.newVal
-        }
-    }
+function assertToken(res) {
+  if (!TOKEN) {
+    res
+      .status(500)
+      .send(
+        'Missing PRIVATE_APP_ACCESS_TOKEN. Add it to a local .env file (do not commit).'
+      );
+    return false;
+  }
+  return true;
+}
 
-    const email = req.query.email;
-    const updateContact = `https://api.hubapi.com/crm/v3/objects/contacts/${email}?idProperty=email`;
-    const headers = {
-        Authorization: `Bearer ${PRIVATE_APP_ACCESS}`,
-        'Content-Type': 'application/json'
+app.get('/', async (req, res) => {
+  if (!assertToken(res)) return;
+
+  try {
+    const params = new URLSearchParams({
+      limit: '100',
+      archived: 'false',
+    });
+    LIST_PROPERTIES.forEach((key) => params.append('properties', key));
+
+    const response = await hsClient.get(
+      `/crm/v3/objects/${OBJECT_TYPE}?${params.toString()}`
+    );
+    const records = response.data.results || [];
+
+    res.render('homepage', {
+      title: 'CRM Records | Integrating With HubSpot I Practicum',
+      records,
+      propConfig: PROP_CONFIG,
+    });
+  } catch (error) {
+    console.error(error.response?.data || error.message);
+    res.status(500).send('Error fetching CRM records.');
+  }
+});
+
+app.get('/update-cobj', (req, res) => {
+  res.render('updates', {
+    title: 'Update Custom Object Form | Integrating With HubSpot I Practicum',
+    propConfig: PROP_CONFIG,
+  });
+});
+
+app.post('/update-cobj', async (req, res) => {
+  if (!assertToken(res)) return;
+
+  try {
+    const properties = {
+      email: req.body.email,
     };
+    PROP_CONFIG.forEach((p) => {
+      properties[p.key] = req.body[p.key];
+    });
 
-    try { 
-        await axios.patch(updateContact, update, { headers } );
-        res.redirect('back');
-    } catch(err) {
-        console.error(err);
-    }
-
+    await hsClient.post(`/crm/v3/objects/${OBJECT_TYPE}`, { properties });
+    res.redirect('/');
+  } catch (error) {
+    console.error(error.response?.data || error.message);
+    res.status(500).send('Error creating CRM record.');
+  }
 });
-*/
 
-
-// * Localhost
-app.listen(3000, () => console.log('Listening on http://localhost:3000'));
+app.listen(PORT, () =>
+  console.log(`Listening on http://localhost:${PORT}`)
+);

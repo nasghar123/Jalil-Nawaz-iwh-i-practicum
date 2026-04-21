@@ -1,0 +1,19 @@
+doctype html
+html
+  head
+    title= title
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    link(rel="stylesheet", href="/css/style.css")
+  body
+    h1 Add CRM record
+    a(href="/") Return to the homepage
+
+    form.form-wrapper(action="/update-cobj" method="POST")
+      div
+        label(for="email") Email (unique for each contact)
+        input#email(type="email" name="email" required)
+      each p in propConfig
+        div
+          label(for=p.key)= p.label
+          input(type="text" id=p.key name=p.key required)
+      input(type="submit" value="Submit")
