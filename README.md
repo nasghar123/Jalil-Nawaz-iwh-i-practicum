@@ -6,15 +6,12 @@ To read the full directions, please go to the [practicum instructions](https://a
 
 ## HubSpot CRM list view (required link)
 
-Replace `<PORTAL_ID>` with your developer test account ID (the number in your HubSpot URL after `/contacts/`).
+**Contacts list** (used because custom objects were not available in the test portal):
 
-**Contacts list (used because custom objects were not available in the test portal):**
+https://app.hubspot.com/contacts/243315650/objects/0-1/views/all/list
 
-https://app.hubspot.com/contacts/<PORTAL_ID>/objects/0-1/views/all/list
-
-If you use a custom object later, the practicum format is:
-
-https://app.hubspot.com/contacts/<PORTAL_ID>/objects/<CUSTOM_OBJECT_TYPE_ID>/views/all/list
+If you use a custom object later, the practicum URL format is:  
+`https://app.hubspot.com/contacts/<PORTAL_ID>/objects/<CUSTOM_OBJECT_TYPE_ID>/views/all/list`
 
 ---
 
